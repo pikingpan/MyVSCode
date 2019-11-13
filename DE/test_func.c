@@ -69,7 +69,7 @@ void test_func(double *x, double *f, int nx, int mx,int func_num)
 	if (ini_flag==0)
 	{
 		FILE *fpt;
-		char FileName[PATH_MAX];
+		char FileName[260];
 		free(M);
 		free(OShift);
 		free(y);
