@@ -1,6 +1,6 @@
 import numpy as np
 import math
- 
+import matplotlib.pyplot as plt 
  
 ######## 数据集 ########
  
@@ -12,7 +12,7 @@ t_t = [[54918],[24],[450]]               # 用来测试的数据集 对应的实
  
 ######## 超参数设定 ########
  
-n_epoch = 30000             # 训练次数
+n_epoch = 20000             # 训练次数
  
 HNum = 2;                   # 各层隐藏层节点数
  
@@ -32,7 +32,6 @@ ONum = len(t_s[0]);         # 输出层节点数（结果的维度）
 StudyTime = 0;              # 学习次数
 KtoOne = 0.0;               # 归一化系数
 e = 0.0;                    # 均方差根
- 
 ######################################################### 主要矩阵设定 ######################################################
  
 I = np.zeros(INum);         #输入层矩阵
@@ -88,6 +87,10 @@ def trait(p):                                  # 特征化
 def sigmoid(x):
     return (1 / (1 + np.exp(-x)))
 
+def d_sigmoid(x):
+	return sigmoid(x)*(1 - sigmoid(x))
+
+
 def AF(p,kind):   # 激励函数
 	t = []
 	if kind == 1:   # sigmoid
@@ -103,7 +106,7 @@ def AF(p,kind):   # 激励函数
 def dAF(p,kind):   # 激励函数导数
 	t = []
 	if kind == 1:   # sigmoid
-		return (sigmoid(p)*(1 - sigmoid(p)))
+		return d_sigmoid(p)
 	elif kind == 2:   # tanh
 		pass
 	elif kind == 3:    # ReLU
@@ -123,12 +126,12 @@ def nnbp(p,t):
  
 def train(p,t):                                # 训练
 	
-	global e
-	global v
-	global w
-	global dw
-	global u	
-	global I 
+	global e	#方差
+	global v   	#输出层权值
+	global w	#隐层1的权值
+	global dw	#隐层2的权值
+	global u	#输出层权值
+	global I 	#输入
 	global Ti 
 	global To 
 	global Hi 
@@ -142,10 +145,9 @@ def train(p,t):                                # 训练
 	global Oe
 	global StudyTime
 	global KtoOne
-	
+
 	e = 0.0
-	p = trait(p)
-		
+	p = trait(p)	
 	KtoOne = Calcu_KtoOne(p,t)
 		
 	for isamp in range(0,SNum,1):
@@ -255,13 +257,19 @@ def predict(p):
 		p_result[isamp] = Oo
 	return p_result
  
- 
+# 可视化多项式曲线拟合结果
+def draw_fit_curve(origin_xs, origin_ys, prediction_ys, step_arr, loss_arr):
+	pass
+	
+step , e_t = [],[]
 for i in range(1,n_epoch,1):
 	if i%1000 == 0:
 		print('已训练 %d 千次 ,误差均方差 %f'%((i/1000),e))
+		step.append(i)
+		e_t.append(e)
 	train(p_s,t_s)
 print('训练完成，共训练 %d 次，误差均方差 %f'%(i,e))
- 
+
 print()
 		
 result = predict(p_t)
@@ -273,4 +281,11 @@ for i in result:
 print('\n实际结果 : ')	
 for i in t_t:
 	print(i)
+#误差下降曲线
+plt.title("BPNN ERRO CUR")
+plt.plot(step,e_t) 
+plt.xlabel('X:Generation')
+plt.ylabel('Y:erro')
+plt.savefig('./BpNN.png')
+plt.show()
 		
