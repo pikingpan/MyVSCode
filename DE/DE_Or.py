@@ -3,17 +3,18 @@ import matplotlib.pyplot as plt
 import math
 import random
 from decimal import Decimal
+from mpl_toolkits.mplot3d import Axes3D
 NP = 100
 D = 100
 F = 0.5
 CR = 0.8
-Generation = 4000
-Max = 100
+Generation = 30*D
+Max = 5.12
 Min = 0
 
 
 # Object function
-def function_x(x):
+def Sphere(x):
     fx = 0
     for i in range(0,D):
         fx = fx + x[i]**2
@@ -69,7 +70,7 @@ def f8(x):
     for i in range(0,D):
         fx = fx + (-x[i])*math.sin(math.sqrt(abs(x[i])))
     return fx
-def f9(x):
+def Rastrigin(x):
     fx = 0
     for i in range(0,D):
         fx = fx + ( x[i]**2 - 10*math.cos(2*math.pi*x[i]) + 10 )
@@ -96,7 +97,7 @@ def initialtion():
 def Cost(init_list):
     cost = [0]*NP
     for i in range(0, NP):
-        cost[i] = cost[i] + function_x(init_list[i])
+        cost[i] = cost[i] + Rastrigin(init_list[i])
     return cost
 
 
@@ -124,7 +125,7 @@ def Evolution(init_list,cost):
                 trial[j] = init_list[i][j]
             j = (j+1) % D
 
-        score = score + function_x(trial)
+        score = score + Rastrigin(trial)
         if(score<=cost[i]):
             for j in range(0,D):
                 U[i][j] = trial[j]
@@ -158,6 +159,10 @@ plt.plot(x_label,y)
 plt.title("DE Fig")
 plt.xlabel('Generation')
 plt.ylabel('y')
-plt.savefig('./De_or.png')
-#plt.show()
-
+plt.savefig('./De_Ras.png')
+'''
+figure = plt.figure()
+axes = Axes3D(figure)
+X,Y = np.meshgrid(x_label,x_label)
+plt.show()
+'''
