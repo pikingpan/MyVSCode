@@ -122,5 +122,5 @@ ax.set_title("Best Path")
 ax.set_xlabel('X axis')
 ax.set_ylabel('Y_axis')
  
-plt.savefig('best path.png', dpi=500, bbox_inches='tight')
+plt.savefig('C:\\Users\\Evil\\Desktop\\mycode\\Pic\\best path.png', dpi=500, bbox_inches='tight')
 plt.show()

@@ -12,7 +12,7 @@ t_t = [[54918],[24],[450]]               # 用来测试的数据集 对应的实
  
 ######## 超参数设定 ########
  
-n_epoch = 20000             # 训练次数
+n_epoch = 20000           # 训练次数
  
 HNum = 2;                   # 各层隐藏层节点数
  
@@ -286,6 +286,6 @@ plt.title("BPNN ERRO CUR")
 plt.plot(step,e_t) 
 plt.xlabel('X:Generation')
 plt.ylabel('Y:erro')
-plt.savefig('./BpNN.png')
+plt.savefig('C:\\Users\\Evil\\Desktop\\mycode\\Pic\\BpNN.png')
 plt.show()
 		

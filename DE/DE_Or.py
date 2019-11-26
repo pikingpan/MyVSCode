@@ -159,7 +159,7 @@ plt.plot(x_label,y)
 plt.title("DE Fig")
 plt.xlabel('Generation')
 plt.ylabel('y')
-plt.savefig('./De_Ras.png')
+plt.savefig('C:\\Users\\Evil\\Desktop\\mycode\\Pic\\De_Ras.png')
 '''
 figure = plt.figure()
 axes = Axes3D(figure)
