@@ -57,7 +57,7 @@ char *extdata;
 void test_func(double *x, double *f, int nx, int mx,int func_num)
 {
 
-    //printf("xxx %d,%f,%d,%d,%d",ini_flag,x,f,nx,mx,func_num);
+    printf("xxx %d,%d,%d",ini_flag,n_flag,func_flag);
 	int cf_num=10,i,ret;
 	if (ini_flag==1)
 	{
@@ -90,11 +90,13 @@ void test_func(double *x, double *f, int nx, int mx,int func_num)
 		}
 
 		M=(double*)malloc(cf_num*nx*nx*sizeof(double));
+		
 		if (M==NULL)
 			perror("There is insufficient memory available!");
 		for (i=0; i<cf_num*nx*nx; i++)
 		{
 				ret = fscanf(fpt,"%lf",&M[i]);
+				//printf("M=%lf\n",ret);
 				if (ret != 1)
 				{
 				    perror("Error reading from the input file");
@@ -114,7 +116,9 @@ void test_func(double *x, double *f, int nx, int mx,int func_num)
 			perror("There is insufficient memory available!");
 		for(i=0;i<cf_num*nx;i++)
 		{
+				//printf("OShift %lf",OShift[i]);
 				ret = fscanf(fpt,"%lf",&OShift[i]);
+				
 				if (ret != 1)
 				{
 				    perror("Error reading from the input file");
@@ -126,7 +130,8 @@ void test_func(double *x, double *f, int nx, int mx,int func_num)
 		func_flag=func_num;
 		ini_flag=1;
 	}
-
+	
+    //int True = 1 , Faul = 0;
 	for (i = 0; i < mx; i++)
 	{
 		switch(func_num)
@@ -134,6 +139,7 @@ void test_func(double *x, double *f, int nx, int mx,int func_num)
 		case 1:	
 			sphere_func(&x[i*nx],&f[i],nx,OShift,M,0);
 			f[i]+=-1400.0;
+			//printf("%lf",f[i]);
 			break;
 		case 2:	
 			ellips_func(&x[i*nx],&f[i],nx,OShift,M,1);
@@ -253,7 +259,8 @@ void test_func(double *x, double *f, int nx, int mx,int func_num)
 void sphere_func (double *x, double *f, int nx, double *Os,double *Mr,int r_flag) /* Sphere */
 {
 	int i;
-	//shiftfunc(x, y, nx, Os);
+	//printf("OS=%lf, Mr=%lf, r_flag=%d\n",Os,Mr,r_flag);
+	shiftfunc(x, y, nx, Os);
 	if (r_flag==1)
 	rotatefunc(y, z, nx, Mr);
 	else
