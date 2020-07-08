@@ -1,4 +1,5 @@
 import numpy as np
+from numpy import *
 import matplotlib.pyplot as plt
 import math
 import random
@@ -7,11 +8,11 @@ from mpl_toolkits.mplot3d import Axes3D
 E = 2.7182818284590452353602874713526625
 PI = 3.1415926535897932384626433832795029
 NP = 100
-D = 2
+D = 30
 F = 0.5
 CR = 0.8
 Generation = 30*D
-Max = 5.12
+Max = 100
 Min = 0
 
 cf_num = 10
@@ -43,6 +44,7 @@ def Read_Data():
     for i in range(0, cf_num*D):
         for j in range(0, D):
             Mr.append(P[i][j])
+    #print(len(Mr))
     file_to_read.close()
     #print(Mr)
     Q =[]
@@ -66,11 +68,11 @@ def shiftfunc(x,xshift,Os):
     for i in range(0,D):
         xshift[i] = x[i] - OShift[i]
 
-def rotatefunc(x,xrot,Mr):
+def rotatefunc(x,xrot,Mr,N):
     for i in range(0,D):
         xrot[i]=0
         for j in range(0,D):
-            xrot[i] = xrot[i] + x[j]*Mr[i*D+j]
+            xrot[i] = xrot[i] + x[j]*Mr[i*D+j+N]
 
 def asyfunc(x,xasy,beta):
     for i in range(0,D):
@@ -133,7 +135,7 @@ def cf_cal(x,f,Os,delta,bias,fit,cf_num_1):
 def sphere_func(x,f,r_flag,Mr,Os):  # Sphere
     shiftfunc(x,y,Os)
     if(r_flag==1):
-        rotatefunc(x,z,Mr)
+        rotatefunc(x,z,Mr,0)
     else:
         for i in range(0,D):
             z[i] = y[i]
@@ -145,8 +147,8 @@ def sphere_func(x,f,r_flag,Mr,Os):  # Sphere
 
 def ellips_func(x,f,r_flag,Mr,Os):  # / Ellipsoidal /
     shiftfunc(x,y,Os)
-    if(r_flag):
-        rotatefunc(y,z)
+    if(r_flag==1):
+        rotatefunc(y,z,Mr,0)
     else:
         for i in range(0,D):
             z[i] = y[i]
@@ -160,13 +162,13 @@ def bent_cigar_func(x,f,r_flag,Mr,Os):  # / Bent_Cigar /
     beta = 0.5
     shiftfunc(x,y,Os)
     if(r_flag==1):
-        rotatefunc(y,z,Mr)
+        rotatefunc(y,z,Mr,0)
     else:
         for i in range(0,D):
             z[i] = y[i]
     asyfunc(z,y,beta)
     if(r_flag==1):
-        rotatefunc(y,z,Mr[D*D])
+        rotatefunc(y,z,Mr,D*D)
     else:
         for i in range(0,D):
             z[i] = y[i]
@@ -179,7 +181,7 @@ def bent_cigar_func(x,f,r_flag,Mr,Os):  # / Bent_Cigar /
 def discus_func(x,f,r_flag,Mr,Os):  # / Discus /
     shiftfunc(x,y,Os)
     if(r_flag==1):
-        rotatefunc(y,z,Mr)
+        rotatefunc(y,z,Mr,0)
     else:
         for i in range(0,D):
             z[i] = y[i]
@@ -193,7 +195,7 @@ def discus_func(x,f,r_flag,Mr,Os):  # / Discus /
 def dif_powers_func(x,f,r_flag,Mr,Os):  # / Different Powers /
     shiftfunc(x,y,Os)
     if(r_flag==1):
-        rotatefunc(y,z,Mr)
+        rotatefunc(y,z,Mr,0)
     else:
         for i in range(0,D):
             z[i] = y[i]
@@ -208,7 +210,7 @@ def rosenbrock_func(x,f,r_flag,Mr,Os):  # / Rosenbrock's /
     for i in range(0,D):
         y[i] = y[i]*2.048/100
     if (r_flag==1):
-        rotatefunc(y,z,Mr)
+        rotatefunc(y,z,Mr,0)
     else:
         for i in range(0,D):
             z[i] = y[i]
@@ -225,7 +227,7 @@ def rosenbrock_func(x,f,r_flag,Mr,Os):  # / Rosenbrock's /
 def schaffer_F7_func(x,f,r_flag,Mr,Os):  # / Schwefel's 1.2  /
     shiftfunc(x,y,Os)
     if(r_flag==1):
-        rotatefunc(y,z,Mr)
+        rotatefunc(y,z,Mr,0)
     else:
         for i in range(0,D):
             z[i] = y[i]
@@ -233,7 +235,7 @@ def schaffer_F7_func(x,f,r_flag,Mr,Os):  # / Schwefel's 1.2  /
     for i in range(0,D):
         z[i] = y[i]*pow(10.0,1.0*i/(D-1)/2.0)
     if (r_flag==1):
-        rotatefunc(z,y,Mr[D*D])
+        rotatefunc(z,y,Mr,D*D)
     else:
         for i in range(0,D):
             y[i] = z[i]
@@ -249,7 +251,7 @@ def schaffer_F7_func(x,f,r_flag,Mr,Os):  # / Schwefel's 1.2  /
 def ackley_func(x,f,r_flag,Mr,Os):  # / Ackley's  /
     shiftfunc(x,y,Os)
     if(r_flag==1):
-        rotatefunc(y,z,Mr)
+        rotatefunc(y,z,Mr,0)
     else:
         for i in range(0,D):
             z[i] = y[i]
@@ -257,7 +259,7 @@ def ackley_func(x,f,r_flag,Mr,Os):  # / Ackley's  /
     for i in range(0,D):
         z[i] = y[i] + y[i]*pow(10.0,1.0*i/(D-1)/2.0)
     if (r_flag==1):
-        rotatefunc(z, y, Mr[D*D])
+        rotatefunc(z, y, Mr,D*D)
     else:
         for i in range(0,D):
             y[i]=z[i];
@@ -279,7 +281,7 @@ def weierstrass_func(x,f,r_flag,Mr,Os):  # / Weierstrass's  /
     for i in range(0,D):
         y[i]=y[i]*0.5/100
     if(r_flag==1):
-        rotatefunc(y,z,Mr)
+        rotatefunc(y,z,Mr,0)
     else:
         for i in range(0,D):
             z[i] = y[i]
@@ -287,7 +289,7 @@ def weierstrass_func(x,f,r_flag,Mr,Os):  # / Weierstrass's  /
     for i in range(0,D):
         z[i] = y[i]*pow(10.0,1.0*i/(D-1)/2.0)
     if (r_flag==1):
-        rotatefunc(z,y,Mr[D*D])
+        rotatefunc(z,y,Mr,D*D)
     else:
         for i in range(0,D):
             y[i] = z[i]
@@ -311,7 +313,7 @@ def griewank_func(x,f,r_flag,Mr,Os):  # / Griewank's  /
     for i in range(0, D):
         y[i] = y[i]*600.0/100.0
     if (r_flag==1):
-        rotatefunc(y,z,Mr)
+        rotatefunc(y,z,Mr,0)
     else:
         for i in range(0, D):
             z[i] = y[i]
@@ -334,21 +336,21 @@ def rastrigin_func(x,f,r_flag,Mr,Os):  #/* Rastrigin's  */
     for i in range(0,D):   #shrink to the orginal search range
         y[i]=y[i]*5.12/100
     if (r_flag==1):
-        rotatefunc(y,z,Mr)
+        rotatefunc(y,z,Mr,0)
     else:
         for i in range(0,D):
             z[i] =y[i]
     oszfunc(z,y)
     asyfunc(y,z,beta)
     if (r_flag==1):
-        rotatefunc(z,y,Mr[D*D])
+        rotatefunc(z,y,Mr,D*D)
     else:
         for i in range(0,D):
             y[i] = z[i]
     for i in range(0,D):
         y[i]*=pow(alpha,1.0*i/(D-1)/2)
     if(r_flag==1):
-        rotatefunc(y,z,Mr)
+        rotatefunc(y,z,Mr,0)
     else:
         for i in range(0,D):
             z[i] = y[i]
@@ -365,7 +367,7 @@ def step_rastrigin_func(x,f,r_flag,Mr,Os):   #/* Noncontinuous Rastrigin's  */
         y[i]=y[i]*5.12/100 #shrink to the orginal search range
     
     if(r_flag==1):
-        rotatefunc(y,z,Mr)
+        rotatefunc(y,z,Mr,0)
     else:
         for i in range(0,D):
             if(math.fabs(z[i])>0.5):
@@ -373,14 +375,14 @@ def step_rastrigin_func(x,f,r_flag,Mr,Os):   #/* Noncontinuous Rastrigin's  */
     oszfunc(z,y)
     asyfunc(y,z,beta)
     if(r_flag==1):
-        rotatefunc(z,y,Mr[D*D])
+        rotatefunc(z,y,Mr,D*D)
     else:
         for i in range(0,D):
             y[i] = z[i]
     for i in range(0,D):
         y[i]*=pow(alpha,1.0*i/(D-1)/2)
     if (r_flag==1):
-        rotatefunc(y,z)
+        rotatefunc(y,z,Mr,0)
     f = 0.0
     for i in range(0,D):
         f += (z[i]*z[i] - 10.0*math.cos(2.0*PI*z[i]) + 10.0)
@@ -391,7 +393,7 @@ def schwefel_func (x,f,r_flag,Mr,Os): #/* Schwefel's  */
     for i in range(0,D):
         y[i]*=1000/100
     if(r_flag==1):
-        rotatefunc(y,z)
+        rotatefunc(y,z,Mr,0)
     else:
         for i in range(0,D):
             z[i] = y[i]
@@ -427,7 +429,7 @@ def katsuura_func (x,f,r_flag,Mr,Os): #/* Katsuura  */
     for i in range(0,D):
         z[i] *=pow(100.0,1.0*i/(D-1)/2.0)
     if(r_flag==1):
-        rotatefunc(z,y,Mr[D*D])
+        rotatefunc(z,y,Mr,D*D)
     else:
         for i in range(0,D):
             y[i] = z[i]
@@ -460,14 +462,14 @@ def bi_rastrigin_func(x,f,r_flag,Mr,Os): #/* Lunacek Bi_rastrigin Function */
         z[i]=tmpx[i]
         tmpx[i] += mu0
     if (r_flag==1):
-        rotatefunc(z, y, Mr)
+        rotatefunc(z, y, Mr,0)
     else:
         for i in range(0,D):
             y[i]=z[i]
     for i in range(0,D):
         y[i] *=pow(100.0,1.0*i/(D-1)/2.0)
     if (r_flag==1):
-        rotatefunc(y,z,Mr[D*D])
+        rotatefunc(y,z,Mr,D*D)
     else:
         for i in range(0,D):
             z[i]=y[i]
@@ -495,7 +497,7 @@ def grie_rosen_func (x,f,r_flag,Mr,Os): #/* Griewank-Rosenbrock  */
     for i in range(0,D):
         y[i]=y[i]*5/100
     if(r_flag==1):
-        rotatefunc(y,z,Mr)
+        rotatefunc(y,z,Mr,0)
     else:
         for i in range(0,D):
             z[i]=y[i]
@@ -514,20 +516,22 @@ def grie_rosen_func (x,f,r_flag,Mr,Os): #/* Griewank-Rosenbrock  */
     return f
 
 def escaffer6_func (x,f,r_flag,Mr,Os): #/* Expanded Scaffer's F6  */
+    #print(len(Mr))
     shiftfunc(x,y,Os)
     if(r_flag==1):
-        rotatefunc(y,z,Mr)
+        rotatefunc(y,z,Mr,0)
     else:
         for i in range(0,D):
             z[i]=y[i]
     asyfunc(z,y,0.5)
     if(r_flag==1):
-        rotatefunc(y,z,Mr[D*D])
+        rotatefunc(y,z,Mr,D*D)
     else:
         for i in range(0,D):
             z[i] = y[i]
     f = 0.0
-    for i in range(0,D):
+    for i in range(0,D-1):
+        #print(math.sqrt(z[i]*z[i]+z[i+1]*z[i+1]))
         temp1 = math.sin(math.sqrt(z[i]*z[i]+z[i+1]*z[i+1]))
         temp1 =temp1*temp1
         temp2 = 1.0 + 0.001*(z[i]*z[i]+z[i+1]*z[i+1])
@@ -681,8 +685,60 @@ def cf08(x,f,r_flag,Mr,Os):
     fit[i]=10000*fit[i]/1e+5;
     cf_cal(x, f, D, Os, delta,bias,fit,cf_num)
 
+#计算欧拉距离
+def Elu_Distance(a, b):
+    dist = math.sqrt(sum(square(a-b)))
+    return dist
+
+# 加载样本点
+def load_DataSet(data):
+    data_array = data.strip().split(',')
+    dataSet = [(float(data_array[i]), float(data_array[i+1])) for i in range(1, len(data_array)-1,3)]
+    return dataSet
+
+#密度聚类算法
+def dbscan(dataSet, e, min_point):
+    k = 0    # 聚类个数
+    cores = set()   # 核心对象集合
+    not_visit = set(dataSet)  # 未访问对象
+    #print(not_visit)
+    clusters = []  # 簇对象
+    for di in dataSet:
+        if len([dj for dj in dataSet if Elu_Distance(array(di), array(dj))<=e])>=min_point:
+            cores.add(di)   # 将核心点加入到核心集合中
+
+    while len(cores):
+        not_visit_old = not_visit
+        # 从cores中随机选一个核心对象core,初始化一个队列coreQ = [core]
+        core = list(cores)[random.randint(0, len(cores))]
+        # not_visit = not_visit - o(从T中删除o)
+        not_visit = not_visit - set(core)
+        coreQ = []
+        coreQ.append(core)
+        #print(len(coreQ))
+        while len(coreQ):
+            coreq = coreQ[0]
+            # 将以core点为核心的所有样本点找出来
+            core_samples = [di for di in dataSet if Elu_Distance(array(di), array(coreq)) <= e]
+            if len(core_samples) >= min_point:
+                # 计算q的ε - 邻域中包含样本的个数，如果大于等于MinPts，则令S为q的ε - 邻域与not_visit的交集
+                # not_visit中的个数会逐渐减少,最后S就会变成空，从而coreQ会逐渐变成空队列
+                S = not_visit & set(core_samples)
+                coreQ += list(S)
+                not_visit = not_visit - S
+            coreQ.remove(coreq)
+        k += 1
+        Ck = not_visit_old - not_visit
+        cores = cores - Ck
+        clusters.append(list(Ck))
+    return clusters
 
 
+def Shere(list_t):
+    f = 0
+    for i in range(len(list_t)):
+        f = f + list_t[i]**2
+    return f
 
 
 
@@ -697,12 +753,17 @@ def initialtion():
             init_list[i][j] = random.uniform(Min, Max)
     return init_list
 
+def cost(list_a):
+    cost = 0
+    f=1.0
+    cost = Shere(list_a)
+    return cost
 
 def Cost(init_list):
     cost = [0]*NP
     f=1.0
     for i in range(0, NP):
-        cost[i] = cost[i] + schwefel_func(init_list[i],f,0,Mr,OShift)
+        cost[i] = cost[i] + sphere_func(init_list[i],f,1,Mr,OShift)
     return cost
 
 
@@ -731,7 +792,7 @@ def Evolution(init_list, cost):
                 trial[j] = init_list[i][j]
             j = (j+1) % D
         f = 1.0
-        score = score + schwefel_func(trial,f,0,Mr,OShift)
+        score = score + ellips_func(trial,f,1,Mr,OShift)
         if(score <= cost[i]):
             for j in range(0, D):
                 U[i][j] = trial[j]
@@ -750,6 +811,21 @@ print("start run")
 Read_Data()
 y_t = []
 init_list = initialtion()
+
+s = []
+for i in init_list:
+    for j in i:
+        s.append(j)
+#print("init_list")
+
+a = ",".join('%s' %id for id in s)
+dataSet = load_DataSet(a)
+clusters = dbscan(dataSet, 4.86, 5)
+init_s = []
+for i_1 in range(len(clusters)):
+    a_a = random.randint(0, len(clusters[i_1]))
+    a_b = random.randint(0, len(clusters[i_1][a_a]))
+    init_s.append(clusters[i_1][a_a][a_b])
 cost = Cost(init_list)
 y_t.append(min(cost))
 for g in range(0, Generation):
@@ -767,7 +843,7 @@ plt.plot(x_label, y_t)
 plt.title("DE Fig")
 plt.xlabel('Generation')
 plt.ylabel('y')
-plt.savefig('C:\\Users\\Evil\\Desktop\\mycode\\Pic\\De_Ras.png')
+plt.savefig('C:\\Users\\Evil\\Desktop\\mycode\\Pic\\ellips_func.png')
 '''
 figure = plt.figure()
 axes = Axes3D(figure)

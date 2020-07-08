@@ -57,7 +57,7 @@ char *extdata;
 void test_func(double *x, double *f, int nx, int mx,int func_num)
 {
 
-    printf("xxx %d,%d,%d",ini_flag,n_flag,func_flag);
+    //printf("xxx %d,%d,%d",ini_flag,n_flag,func_flag);
 	int cf_num=10,i,ret;
 	if (ini_flag==1)
 	{
@@ -799,15 +799,20 @@ void escaffer6_func (double *x, double *f, int nx, double *Os,double *Mr,int r_f
     int i;
     double temp1, temp2;
 	shiftfunc(x, y, nx, Os);
-	if (r_flag==1)
+	if (r_flag==1){
+		//printf("r1\n");
 	rotatefunc(y, z, nx, Mr);
+	}
 	else
     for (i=0; i<nx; i++)
 		z[i]=y[i];
 
 	asyfunc (z, y, nx, 0.5);
-	if (r_flag==1)
+	//printf("%lf",Mr[nx*nx]);
+	if (r_flag==1){
+	//printf("r2\n");
 	rotatefunc(y, z, nx, &Mr[nx*nx]);
+	}
 	else
     for (i=0; i<nx; i++)
 		z[i]=y[i];
@@ -815,6 +820,7 @@ void escaffer6_func (double *x, double *f, int nx, double *Os,double *Mr,int r_f
     f[0] = 0.0;
     for (i=0; i<nx-1; i++)
     {
+		//printf("%lf\n",sqrt(z[i]*z[i]+z[i+1]*z[i+1]));
         temp1 = sin(sqrt(z[i]*z[i]+z[i+1]*z[i+1]));
 		temp1 =temp1*temp1;
         temp2 = 1.0 + 0.001*(z[i]*z[i]+z[i+1]*z[i+1]);
@@ -824,6 +830,7 @@ void escaffer6_func (double *x, double *f, int nx, double *Os,double *Mr,int r_f
 	temp1 =temp1*temp1;
     temp2 = 1.0 + 0.001*(z[nx-1]*z[nx-1]+z[0]*z[0]);
     f[0] += 0.5 + (temp1-0.5)/(temp2*temp2);
+	//printf("f = %lf\n",f[0]);
 }
 
 
@@ -1004,9 +1011,12 @@ void rotatefunc (double *x, double *xrot, int nx,double *Mr)
     for (i=0; i<nx; i++)
     {
         xrot[i]=0;
+		//printf("i=%d\n",i);
 			for (j=0; j<nx; j++)
 			{
+				//printf("j=%d\n",j);
 				xrot[i]=xrot[i]+x[j]*Mr[i*nx+j];
+				//printf("%lf\t\n",Mr[i*nx+j]);
 			}
     }
 }
