@@ -1,3 +1,5 @@
+from math import cos
+#from DensityCluster-master.get_rho import how_many_goptima
 import numpy as np
 import os
 import matplotlib.pyplot as plt
@@ -5,7 +7,9 @@ import math
 import random
 from decimal import Decimal
 from mpl_toolkits.mplot3d import Axes3D
-from sklearn.decomposition import PCA
+import matlab
+import matlab.engine
+from numpy.lib.twodim_base import tri
 E = 2.7182818284590452353602874713526625
 PI = 3.1415926535897932384626433832795029
 NP = 100
@@ -15,16 +19,19 @@ CR = 0.8
 Generation = 30*D
 Max = 1
 Min = 0
+eng=matlab.engine.start_matlab()
 #np.set_printoptions(threshold=1000)
 def euldist(points):
     len_pts=len(points)
+    #print('out loop',np.shape(points))
     dist=np.zeros((len_pts,len_pts))
     #欧氏距离
     for i in range(len_pts):
         for j in range(len_pts):
+            #print('in loop',np.shape(points))
             dist[i,j]=np.sqrt(np.sum(np.square(points[i]-points[j])))
     #截断距离。选取2%
-    dc=np.sort(np.concatenate(dist))[int(np.ceil(len_pts+0.01*len_pts*(len_pts-1)))]
+    dc=np.sort(np.concatenate(dist))[int(np.ceil(len_pts+0.005*len_pts*(len_pts-1)))]
     return dist,dc
 
 def calrho(dist,dc):
@@ -66,46 +73,29 @@ def calcenters(gamma):
 
 def calclusters(q,rho,centers):
     clusters=np.array(centers).reshape(-1,1).tolist()
+    #print('calclusters',clusters)
     qc=np.copy(q)
+    #print("qc",qc)
     for i in np.flipud(np.argsort(rho)):
         if i not in centers:
             if qc[i] not in centers:
                 qc[i]=qc[qc[i]]
-                clusters[centers.index(qc[i])].append(i)
+                #print('',centers.index(qc[i]))
+            clusters[centers.index(qc[i])].append(i)
     return qc,clusters
 
 def plot(rho,delta,gamma,points,clusters):
-    # plt.figure(figsize=(12,18))
-    # plt.subplot(221)
-    # plt.scatter(rho,delta,color='k')
-    # plt.xlabel(r'$\rho$')
-    # plt.ylabel(r'$\delta$')
-    # plt.subplot(222)
-    # plt.scatter(np.arange(len(gamma)),np.sort(gamma,),color='r')
-    # plt.ylabel('r$\gamma$')
-    # plt.subplot(223)
     for cluster in clusters:
         plt.scatter(points[cluster][:,0],points[cluster][:,1],color=np.random.rand(3))
 
 def run(points,plotclusters=True):
     dist,dc=euldist(points)
-    #print('dc',dc)
-    #print('points length',len(dist))
     rho=calrho(dist,dc)
-    #print('rho',rho)
     delta,q=caldelta(rho,dist)
-    #print('detal q',delta,q)
     gamma=rho*delta
-    #print('gamma',gamma)
     centers=calcenters(gamma)
-    #print('center',(centers))
     qc,clusters=calclusters(q,rho,centers)
-    #print('clusters',clusters)
-    #print('some points',(points[clusters[0][0]]))
-    #print('points',points)
-    #if plotclusters:
-        #plot(rho,delta,gamma,points,clusters)
-        #plt.show()
+
     return clusters,centers
 
 def initialtion():
@@ -121,39 +111,42 @@ def F2(init_list):
 
 def Cost(init_list):
     cost = [0]*NP
-    f=1.0
-    for i in range(0, NP):
-        cost[i] = cost[i] + F2(init_list[i])
+    cost = eng.niching_func(matlab.double(init_list.tolist()),2)
     return cost
 
 
 #evolution
-def Evolution(init_list, cost):
+def Evolution(init_list,cost):
     trial = [0]*D
     U = [[0]*D for i in range(NP)]
+    #print("ex init_list",init_list)
     for i in range(0, NP):
         score = 0
         #mutate
-        a = random.randint(0, NP-1)
+        a = random.randint(0, len(init_list)-1)
         while a == i:
-            a = random.randint(0, NP-1)
-        b = random.randint(0, NP-1)
+            a = random.randint(0, len(init_list)-1)
+        b = random.randint(0, len(init_list)-1)
         while b == a | b == i:
-            b = random.randint(0, NP-1)
-        c = random.randint(0, NP-1)
+            b = random.randint(0, len(init_list)-1)
+        c = random.randint(0, len(init_list)-1)
         while c == a | c == b | c == i:
-            c = random.randint(0, NP-1)
+            c = random.randint(0, len(init_list)-1)
         j = random.randint(0, D-1)
+        #print(a,b,c)
         for k in range(1, D+1):
-            if(random.random() <= CR) | (k == D):
+            if((random.random() <= CR) or (k == D)):
                 trial[j] = init_list[a][j] + F * \
                     (init_list[b][j] - init_list[c][j])
+                if (trial[j]<=0):
+                    trial[j] = 0
+                elif(trial[j]>=1):
+                    trial[j]=1
             else:
                 trial[j] = init_list[i][j]
             j = (j+1) % D
-        f = 1.0
         score = score + F2(trial)
-        if(score <= cost[i]):
+        if(score >= cost[i]):
             for j in range(0, D):
                 U[i][j] = trial[j]
             cost[i] = score
@@ -162,36 +155,50 @@ def Evolution(init_list, cost):
                 U[i][j] = init_list[i][j]
     for i in range(0, NP):
         for j in range(0, D):
+            #print(i,j)
             init_list[i][j] = U[i][j]
+    #print('after init_list',init_list)
     return init_list, cost
 
+
+def delete_zero(clusters):
+    X_clu = np.array([[0]*NP]*NP)
+    x = []
+    for i in range(len(clusters)):
+        for j in range(len(clusters[i])):
+            X_clu[i][j] = clusters[i][j]
+        x.append(np.trim_zeros(X_clu[i]))
+    return np.array(x) 
+
+def add_element(init_list,clusters):
+    X_index = [[0]*NP]*NP
+    x = []
+    for i in range(len(clusters)):
+        for j in range(len(clusters[i])):
+            X_index[i][j] = init_list[clusters[i][j]]
+        x.extend(X_index[i][0:len(clusters[i])])
+    return np.array(x)
+
+
 if __name__=='__main__':
-    #name_sets = 'C:\\Users\\Evil\\Desktop\\mycode\\DensityCluster-master\\D31.txt'
-    # path_sets = os.path.join(os.path.expanduser('~'), 'DataSets/Cluster/Shape-sets', name_sets)
-    #path_sets=name_sets
-    #data = np.loadtxt(path_sets)
-    #points = data[:, 0:2]
     init_list = np.array(initialtion())
-    #print('point',points)
-    #print(len(init_list[0]))
     y = []
-    clusters,centers = run(init_list)
-    print('ex caculate ',clusters)
-    cost = Cost(init_list)
-    y.append(min(cost))
+    t = [0]*NP
+    t = Cost(init_list)
+    cost = np.array(t)
+    #print(t)
+    y.append(max(cost))
     for g in range(Generation):
+        clusters,centers = run(init_list)
+        print('the cluster after ',clusters,' and generation',g)
+        init_list = add_element(init_list,clusters)
         init_list,cost=Evolution(init_list,cost)
-        #clusters,centers = run(init_list)
-        y.append(min(cost))
-    clusters,centers = run(init_list)
-    af_clu = init_list[clusters[0]]
-    print('cluster.',clusters)
-    print('cluster after',af_clu)
-    #X_clu = [[0]*NP]*NP
-    #for i in range(len(clusters)):
-        #for j in range(len(clusters[i])):
-            #X_clu[i][j] = clusters[i][j]
-    #position = X_clu
-    #fitness=Shere(init_list[X_clu[0][0]])
-    #cost = Cost(init_list)
-    #print('cost',cost)
+        y.append(max(cost))
+
+    temp = matlab.double(init_list.tolist())
+    #no=eng.get_fgoptima(2)
+    #print("the NP",temp)
+    count = eng.count_goptima(temp,2,0.1,nargout=2)
+    print('goptimation ',count)
+    print('%.3f' % max(y))
+    #print('cost',len(y))
