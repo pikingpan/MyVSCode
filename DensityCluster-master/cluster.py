@@ -10,15 +10,16 @@ from mpl_toolkits.mplot3d import Axes3D
 import matlab
 import matlab.engine
 from numpy.lib.twodim_base import tri
+
 E = 2.7182818284590452353602874713526625
 PI = 3.1415926535897932384626433832795029
 NP = 100
-D = 1
+#D = 1
 F = 0.5
 CR = 0.8
-Generation = 30*D
-Max = 1
-Min = 0
+#Generation = 30*D
+#Max = 1
+#Min = 0
 eng=matlab.engine.start_matlab()
 #np.set_printoptions(threshold=1000)
 def euldist(points):
@@ -45,15 +46,25 @@ def calrho(dist,dc):
 
 #从点i到具有更高局部密度的点的最小距离
 def caldelta(rho,dist):
-    len_delta=len(rho)
-    delta=np.ones(len_delta)*np.inf
-    q=np.arange(len_delta)
+    # len_delta=len(rho)
+    # delta=np.ones(len_delta)*np.inf
+    # q=np.arange(len_delta)
+    # for i in range(len_delta):
+    #     for j in range(len_delta):
+    #         #δi是从点i到具有更高局部密度的点的最小距离
+    #         if (rho[j]>rho[i]) and (dist[i,j]<delta[i]):
+    #            delta[i]=dist[i,j]
+    #            q[i]=j
+    ord_rho_index = np.flipud(np.argsort(rho))
+    len_delta = len(rho)
+    delta = np.ones(len_delta) * np.inf
+    q = np.arange(len_delta)
     for i in range(len_delta):
-        for j in range(len_delta):
-            #δi是从点i到具有更高局部密度的点的最小距离
-            if (rho[j]>rho[i])&(dist[i,j]<delta[i]):
-               delta[i]=dist[i,j]
-               q[i]=j
+        for j in range(0, i):
+        # δi是从点i到具有更高局部密度的点的最小距离
+            if (dist[ord_rho_index[i], ord_rho_index[j]] < delta[ord_rho_index[i]]):
+                delta[ord_rho_index[i]] = dist[ord_rho_index[i], ord_rho_index[j]]
+                q[ord_rho_index[i]] = ord_rho_index[j]
     indexmax=np.argmax(delta)
     delta[indexmax]=dist[indexmax,:].max()
     return delta,q
@@ -66,7 +77,7 @@ def calcenters(gamma):
     for i in range(2, len(y) - 1):
         # if y[i] - y[i + 1] < (y[i - 1] - y[i]) / 2.:
         #     break
-        if y[i]-gamma_mean < y[i-1]-y[i]:
+        if (y[i]-gamma_mean) < (y[i-1]-y[i]):
             break
         centers.append(x[i])
     return centers
@@ -79,6 +90,9 @@ def calclusters(q,rho,centers):
     for i in np.flipud(np.argsort(rho)):
         if i not in centers:
             if qc[i] not in centers:
+                if qc[qc[i]] not in centers:
+                    print("index",qc[qc[i]])
+                    
                 qc[i]=qc[qc[i]]
                 #print('',centers.index(qc[i]))
             clusters[centers.index(qc[i])].append(i)
@@ -98,7 +112,7 @@ def run(points,plotclusters=True):
 
     return clusters,centers
 
-def initialtion():
+def initialtion(D,Min,Max):
     init_list = [[0]*D for i in range(NP)]
     for i in range(0, NP):
         for j in range(0, D):
@@ -109,14 +123,14 @@ def F2(init_list):
     f=pow(math.sin(5*PI*init_list[0]),6)
     return f
 
-def Cost(init_list):
+def Cost(init_list,func_num):
     cost = [0]*NP
-    cost = eng.niching_func(matlab.double(init_list.tolist()),2)
+    cost = eng.niching_func(matlab.double(init_list.tolist()),func_num)
     return cost
 
 
 #evolution
-def Evolution(init_list,cost):
+def Evolution(init_list,cost,D):
     trial = [0]*D
     U = [[0]*D for i in range(NP)]
     #print("ex init_list",init_list)
@@ -180,25 +194,38 @@ def add_element(init_list,clusters):
     return np.array(x)
 
 
+def Get_Para(func_num):
+     Gen = int((eng.get_maxfes(func_num) / NP))
+     D = int(eng.get_dimension(func_num))
+     Min = eng.get_lb(func_num)
+     Max = eng.get_ub(func_num)
+     return Gen,D,Max,Min
+
+
 if __name__=='__main__':
-    init_list = np.array(initialtion())
+    func_num = 1
+    #calculate(init_list,2)
     y = []
     t = [0]*NP
-    t = Cost(init_list)
+    Gen, D,Max,Min= Get_Para(func_num)
+    init_list = np.array(initialtion(D,Min,Max))
+    t = Cost(init_list,func_num)
+    # cc = np.mat(t)
+    # print(cc)
     cost = np.array(t)
-    #print(t)
+    #print('cost_t',t)
     y.append(max(cost))
-    for g in range(Generation):
+    for g in range(100):
         clusters,centers = run(init_list)
-        print('the cluster after ',clusters,' and generation',g)
+        print('the cluster after ',clusters,' and generation',g+1)
         init_list = add_element(init_list,clusters)
-        init_list,cost=Evolution(init_list,cost)
+        init_list,cost=Evolution(init_list,cost,D)
         y.append(max(cost))
 
     temp = matlab.double(init_list.tolist())
     #no=eng.get_fgoptima(2)
     #print("the NP",temp)
-    count = eng.count_goptima(temp,2,0.1,nargout=2)
+    count = eng.count_goptima(temp,func_num,0.1,nargout=2)
     print('goptimation ',count)
     print('%.3f' % max(y))
     #print('cost',len(y))
